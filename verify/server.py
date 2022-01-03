@@ -4,7 +4,7 @@ import json
 import numpy as np
 import random
 import tensorflow as tf
-import tensorflow.keras.backend as K
+from tensorflow.python.keras import backend as K
 from tensorflow.keras.utils import Sequence
 from tensorflow.keras.callbacks import Callback
 from tensorflow.keras.models import *
@@ -36,9 +36,9 @@ print(characters)
 
 width, height, n_len, n_class = 91, 30, 4, len(characters) + 1
 
-config = tf.ConfigProto()
+config = tf.compat.v1.ConfigProto()
 config.gpu_options.allow_growth = True
-sess = tf.Session(config=config)
+sess = tf.compat.v1.Session(config=config)
 K.set_session(sess)
 
 
@@ -61,8 +61,8 @@ x = Permute((2, 1, 3))(x)
 x = TimeDistributed(Flatten())(x)
 
 rnn_size = 64
-x = Bidirectional(CuDNNGRU(rnn_size, return_sequences=True))(x)
-x = Bidirectional(CuDNNGRU(rnn_size, return_sequences=True))(x)
+x = Bidirectional(tf.compat.v1.keras.layers.CuDNNGRU(rnn_size, return_sequences=True))(x)
+x = Bidirectional(tf.compat.v1.keras.layers.CuDNNGRU(rnn_size, return_sequences=True))(x)
 x = Dense(n_class, activation='softmax')(x)
 
 base_model = Model(inputs=input_tensor, outputs=x)
@@ -73,8 +73,8 @@ label_length = Input(name='label_length', shape=[1], dtype='int64')
 loss_out = Lambda(ctc_lambda_func, output_shape=(1,), name='ctc')([x, labels, input_length, label_length])
 
 model = Model(inputs=[input_tensor, labels, input_length, label_length], outputs=loss_out)
-graph = tf.get_default_graph()
-model.load_weights('ctc_best_new77.h5')
+graph = tf.compat.v1.get_default_graph()
+model.load_weights('./ctc_best_new77.h5')
 
 @app.route('/')
 def hello_world():
